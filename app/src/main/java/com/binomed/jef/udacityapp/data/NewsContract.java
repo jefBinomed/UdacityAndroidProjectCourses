@@ -49,6 +49,10 @@ public class NewsContract {
     // back into date objects for comparison/processing.
     public static final String DATE_FORMAT = "yyyyMMdd";
 
+    // Format used for storing dates in the database.  ALso used for converting those strings
+    // back into date objects for comparison/processing.
+    public static final String DATE_FORMAT_JSON = "EEE, dd MMM yyyy HH:mm:ss Z";
+
     /**
      * Converts Date class to a string representation, used for easy comparison and database lookup.
      * @param date The input date
@@ -76,6 +80,21 @@ public class NewsContract {
         }
     }
 
+    /**
+     * Converts a dateText to a long Unix time representation
+     * @param dateText the input date string
+     * @return the Date object
+     */
+    public static Date getDateFromJson(String dateText) {
+        SimpleDateFormat dbDateFormat = new SimpleDateFormat(DATE_FORMAT_JSON);
+        try {
+            return dbDateFormat.parse(dateText);
+        } catch ( ParseException e ) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
 
     /* Inner class that defines the table contents of the weather table */
     public static final class NewsEntry implements BaseColumns {
@@ -90,33 +109,28 @@ public class NewsContract {
 
         public static final String TABLE_NAME = "news";
 
-        // Column with the foreign key into the location table.
-        public static final String COLUMN_LOC_KEY = "location_id";
         // Date, stored as Text with format yyyy-MM-dd
         public static final String COLUMN_DATETEXT = "date";
-        // Weather id as returned by API, to identify the icon to be used
-        public static final String COLUMN_WEATHER_ID = "weather_id";
+        public static final String COLUMN_THEME = "theme";
 
-        // Short description and long description of the weather, as provided by API.
-        // e.g "clear" vs "sky is clear".
-        public static final String COLUMN_SHORT_DESC = "short_desc";
+        // Short content of article
+        public static final String COLUMN_CONTENT = "content";
 
-        // Min and max temperatures for the day (stored as floats)
-        public static final String COLUMN_MIN_TEMP = "min";
-        public static final String COLUMN_MAX_TEMP = "max";
+        // Title of article
+        public static final String COLUMN_TITLE = "title";
 
-        // Humidity is stored as a float representing percentage
-        public static final String COLUMN_HUMIDITY = "humidity";
+        // Publisher
+        public static final String COLUMN_PUBLISHER = "publisher";
 
-        // Humidity is stored as a float representing percentage
-        public static final String COLUMN_PRESSURE = "pressure";
+        // Url of article
+        public static final String COLUMN_URL = "url";
 
-        // Windspeed is stored as a float representing windspeed  mph
-        public static final String COLUMN_WIND_SPEED = "wind";
+        // Language of article
+        public static final String COLUMN_LANGUAGE = "language";
 
-        // Degrees are meteorological degrees (e.g, 0 is north, 180 is south).  Stored as floats.
-        public static final String COLUMN_DEGREES = "degrees";
-
+        // Url of image full
+        public static final String COLUMN_URL_IMAGE = "url_image";
+        public static final String COLUMN_URL_IMAGE_THUMBNAIL = "url_image_thumbnail";
 
         public static Uri buildNewsUri(long id) {
             return ContentUris.withAppendedId(CONTENT_URI, id);
@@ -124,13 +138,12 @@ public class NewsContract {
 
 
         public static Uri buildNewsWithStartDate(
-                String locationSetting, String startDate) {
-            return CONTENT_URI.buildUpon().appendPath(locationSetting)
+                String theme, String startDate) {
+            return CONTENT_URI.buildUpon().appendPath(theme)
                     .appendQueryParameter(COLUMN_DATETEXT, startDate).build();
         }
 
-        // TODO
-        public static String getLocationSettingFromUri(Uri uri) {
+        public static String getThemeSettingFromUri(Uri uri) {
             return uri.getPathSegments().get(1);
         }
 

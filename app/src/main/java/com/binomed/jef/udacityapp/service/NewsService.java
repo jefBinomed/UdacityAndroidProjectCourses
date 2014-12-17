@@ -43,15 +43,15 @@ import java.util.Vector;
 public class NewsService extends IntentService {
     private ArrayAdapter<String> mForecastAdapter;
     private Context mContext;
-    public static final String LOCATION_QUERY_EXTRA = "lqe";
+    public static final String THEME_QUERY_EXTRA = "tqe";
     private final String LOG_TAG = NewsService.class.getSimpleName();
     public NewsService() {
-        super("Sunshine");
+        super("News");
     }
 
     @Override
     protected void onHandleIntent(Intent intent) {
-        String locationQuery = intent.getStringExtra(LOCATION_QUERY_EXTRA);
+        String themeQuery = intent.getStringExtra(THEME_QUERY_EXTRA);
 
         // These two need to be declared outside the try/catch
         // so that they can be closed in the finally block.
@@ -59,28 +59,26 @@ public class NewsService extends IntentService {
         BufferedReader reader = null;
 
         // Will contain the raw JSON response as a string.
-        String forecastJsonStr = null;
+        String newsJsonStr = null;
 
         String format = "json";
-        String units = "metric";
-        int numDays = 14;
+        String version = "1.0";
+        String size = "8";
 
         try {
-            // Construct the URL for the OpenWeatherMap query
-            // Possible parameters are avaiable at OWM's forecast API page, at
-            // http://openweathermap.org/API#forecast
-            final String FORECAST_BASE_URL =
-                    "http://api.openweathermap.org/data/2.5/forecast/daily?";
+            // Construct the URL for the Google News Api query
+            // https://developers.google.com/news-search/v1/jsondevguide
+            final String NEWS_BASE_URL =
+                    "https://ajax.googleapis.com/ajax/services/search/news?";
             final String QUERY_PARAM = "q";
-            final String FORMAT_PARAM = "mode";
-            final String UNITS_PARAM = "units";
-            final String DAYS_PARAM = "cnt";
+            final String VERSION_PARAM = "v";
+            final String RSZ_PARAM = "rsz";
 
-            Uri builtUri = Uri.parse(FORECAST_BASE_URL).buildUpon()
-                    .appendQueryParameter(QUERY_PARAM, locationQuery)
-                    .appendQueryParameter(FORMAT_PARAM, format)
-                    .appendQueryParameter(UNITS_PARAM, units)
-                    .appendQueryParameter(DAYS_PARAM, Integer.toString(numDays))
+
+            Uri builtUri = Uri.parse(NEWS_BASE_URL).buildUpon()
+                    .appendQueryParameter(QUERY_PARAM, themeQuery)
+                    .appendQueryParameter(VERSION_PARAM, version)
+                    .appendQueryParameter(RSZ_PARAM, size)
                     .build();
 
             URL url = new URL(builtUri.toString());
@@ -112,7 +110,7 @@ public class NewsService extends IntentService {
                 // Stream was empty.  No point in parsing.
                 return;
             }
-            forecastJsonStr = buffer.toString();
+            newsJsonStr = buffer.toString();
         } catch (IOException e) {
             Log.e(LOG_TAG, "Error ", e);
             // If the code didn't successfully get the weather data, there's no point in attempting
@@ -137,113 +135,96 @@ public class NewsService extends IntentService {
 
         // These are the names of the JSON objects that need to be extracted.
 
-        // Location information
-        final String OWM_CITY = "city";
-        final String OWM_CITY_NAME = "name";
-        final String OWM_COORD = "coord";
-
-        // Location coordinate
-        final String OWM_LATITUDE = "lat";
-        final String OWM_LONGITUDE = "lon";
 
         // Weather information.  Each day's forecast info is an element of the "list" array.
-        final String OWM_LIST = "list";
+        final String GNA_RESPONSE_DATA = "responseData";
+        final String GNA_RESPONSE_STATUS = "responseStatus";
+        final String GNA_RESULTS = "results";
 
-        final String OWM_DATETIME = "dt";
-        final String OWM_PRESSURE = "pressure";
-        final String OWM_HUMIDITY = "humidity";
-        final String OWM_WINDSPEED = "speed";
-        final String OWM_WIND_DIRECTION = "deg";
+        final String GNA_DATETIME = "publishedDate";
+        final String GNA_CONTENT = "content";
+        final String GNA_TITLE = "titleNoFormatting";
+        final String GNA_PUBLISHER = "publisher";
+        final String GNA_LANGUAGE = "language";
+        final String GNA_URL = "unsecapeUrl";
 
-        // All temperatures are children of the "temp" object.
-        final String OWM_TEMPERATURE = "temp";
-        final String OWM_MAX = "max";
-        final String OWM_MIN = "min";
+        // All Images are children of the "temp" object.
+        final String GNA_IMAGE = "image";
 
-        final String OWM_WEATHER = "weather";
-        final String OWM_DESCRIPTION = "main";
-        final String OWM_WEATHER_ID = "id";
+        final String GNA_IMAGE_URL = "url";
+        final String GNA_THUMBNAIL_IMAGE_URL = "tbUrl";
+
 
         try {
-            JSONObject forecastJson = new JSONObject(forecastJsonStr);
-            JSONArray weatherArray = forecastJson.getJSONArray(OWM_LIST);
-
-            JSONObject cityJson = forecastJson.getJSONObject(OWM_CITY);
-            String cityName = cityJson.getString(OWM_CITY_NAME);
-
-            JSONObject cityCoord = cityJson.getJSONObject(OWM_COORD);
-            double cityLatitude = cityCoord.getDouble(OWM_LATITUDE);
-            double cityLongitude = cityCoord.getDouble(OWM_LONGITUDE);
+            JSONObject newsJson = new JSONObject(newsJsonStr);
+            JSONObject responseData = newsJson.getJSONObject(GNA_RESPONSE_DATA);
+            int status = newsJson.getInt(GNA_RESPONSE_STATUS);
+            if (status == 200){
+                JSONArray newsArray = responseData.getJSONArray(GNA_RESULTS);
 
 
-            // Insert the new weather information into the database
-            Vector<ContentValues> cVVector = new Vector<ContentValues>(weatherArray.length());
+                // Insert the new weather information into the database
+                Vector<ContentValues> cVVector = new Vector<ContentValues>(newsArray.length());
 
-            for(int i = 0; i < weatherArray.length(); i++) {
-                // These are the values that will be collected.
+                for (int i = 0; i < newsArray.length(); i++) {
+                    // These are the values that will be collected.
 
-                long dateTime;
-                double pressure;
-                int humidity;
-                double windSpeed;
-                double windDirection;
 
-                double high;
-                double low;
+                    String dateTime;
+                    String content;
+                    String title;
+                    String publisher;
+                    String langage;
+                    String url;
 
-                String description;
-                int weatherId;
+                    // Get the JSON object representing a news
+                    JSONObject newsItem = newsArray.getJSONObject(i);
 
-                // Get the JSON object representing the day
-                JSONObject dayForecast = weatherArray.getJSONObject(i);
+                    dateTime = newsItem.getString(GNA_DATETIME);
+                    content = newsItem.getString(GNA_CONTENT);
+                    title = newsItem.getString(GNA_TITLE);
+                    publisher = newsItem.getString(GNA_PUBLISHER);
+                    langage = newsItem.getString(GNA_LANGUAGE);
+                    url = newsItem.getString(GNA_URL);
 
-                // The date/time is returned as a long.  We need to convert that
-                // into something human-readable, since most people won't read "1400356800" as
-                // "this saturday".
-                dateTime = dayForecast.getLong(OWM_DATETIME);
 
-                pressure = dayForecast.getDouble(OWM_PRESSURE);
-                humidity = dayForecast.getInt(OWM_HUMIDITY);
-                windSpeed = dayForecast.getDouble(OWM_WINDSPEED);
-                windDirection = dayForecast.getDouble(OWM_WIND_DIRECTION);
+                    // List of image if present !
+                    JSONObject imageObject =
+                            newsItem.getJSONObject(GNA_IMAGE);
 
-                // Description is in a child array called "weather", which is 1 element long.
-                // That element also contains a weather code.
-                JSONObject weatherObject =
-                        dayForecast.getJSONArray(OWM_WEATHER).getJSONObject(0);
-                description = weatherObject.getString(OWM_DESCRIPTION);
-                weatherId = weatherObject.getInt(OWM_WEATHER_ID);
+                    String urlImage = null;
+                    String urlImageThumbnail = null;
 
-                // Temperatures are in a child object called "temp".  Try not to name variables
-                // "temp" when working with temperature.  It confuses everybody.
-                JSONObject temperatureObject = dayForecast.getJSONObject(OWM_TEMPERATURE);
-                high = temperatureObject.getDouble(OWM_MAX);
-                low = temperatureObject.getDouble(OWM_MIN);
+                    if (imageObject != null){
 
-                ContentValues weatherValues = new ContentValues();
+                        urlImage = imageObject.getString(GNA_IMAGE_URL);
+                        urlImageThumbnail = imageObject.getString(GNA_THUMBNAIL_IMAGE_URL);
+                    }
 
-                weatherValues.put(NewsContract.NewsEntry.COLUMN_DATETEXT, NewsContract.getDbDateString(new Date(dateTime * 1000L)));
-                weatherValues.put(NewsContract.NewsEntry.COLUMN_HUMIDITY, humidity);
-                weatherValues.put(NewsContract.NewsEntry.COLUMN_PRESSURE, pressure);
-                weatherValues.put(NewsContract.NewsEntry.COLUMN_WIND_SPEED, windSpeed);
-                weatherValues.put(NewsContract.NewsEntry.COLUMN_DEGREES, windDirection);
-                weatherValues.put(NewsContract.NewsEntry.COLUMN_MAX_TEMP, high);
-                weatherValues.put(NewsContract.NewsEntry.COLUMN_MIN_TEMP, low);
-                weatherValues.put(NewsContract.NewsEntry.COLUMN_SHORT_DESC, description);
-                weatherValues.put(NewsContract.NewsEntry.COLUMN_WEATHER_ID, weatherId);
+                    ContentValues newsValues = new ContentValues();
 
-                cVVector.add(weatherValues);
+                    newsValues.put(NewsContract.NewsEntry.COLUMN_DATETEXT, NewsContract.getDbDateString(NewsContract.getDateFromJson(dateTime)));
+                    newsValues.put(NewsContract.NewsEntry.COLUMN_THEME, themeQuery);
+                    newsValues.put(NewsContract.NewsEntry.COLUMN_TITLE, title);
+                    newsValues.put(NewsContract.NewsEntry.COLUMN_CONTENT, content);
+                    newsValues.put(NewsContract.NewsEntry.COLUMN_PUBLISHER, publisher);
+                    newsValues.put(NewsContract.NewsEntry.COLUMN_LANGUAGE, langage);
+                    newsValues.put(NewsContract.NewsEntry.COLUMN_URL, url);
+                    newsValues.put(NewsContract.NewsEntry.COLUMN_URL_IMAGE, urlImage);
+                    newsValues.put(NewsContract.NewsEntry.COLUMN_URL_IMAGE_THUMBNAIL, urlImageThumbnail);
+
+                    cVVector.add(newsValues);
+                }
+                if (cVVector.size() > 0) {
+                    ContentValues[] cvArray = new ContentValues[cVVector.size()];
+                    cVVector.toArray(cvArray);
+                    this.getContentResolver().bulkInsert(NewsContract.NewsEntry.CONTENT_URI,
+                            cvArray);
+
+
+                }
+                Log.d(LOG_TAG, "News Service Complete. " + cVVector.size() + " Inserted");
             }
-            if ( cVVector.size() > 0 ) {
-                ContentValues[] cvArray = new ContentValues[cVVector.size()];
-                cVVector.toArray(cvArray);
-                this.getContentResolver().bulkInsert(NewsContract.NewsEntry.CONTENT_URI,
-                        cvArray);
-
-
-            }
-            Log.d(LOG_TAG, "Sunshine Service Complete. " + cVVector.size() + " Inserted");
-
         } catch (JSONException e) {
             Log.e(LOG_TAG, e.getMessage(), e);
             e.printStackTrace();

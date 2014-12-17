@@ -48,23 +48,20 @@ public class NewsDbHelper extends SQLiteOpenHelper {
                 NewsEntry._ID + " INTEGER PRIMARY KEY AUTOINCREMENT," +
 
                 // the ID of the location entry associated with this weather data
-                NewsEntry.COLUMN_LOC_KEY + " INTEGER NOT NULL, " +
                 NewsEntry.COLUMN_DATETEXT + " TEXT NOT NULL, " +
-                NewsEntry.COLUMN_SHORT_DESC + " TEXT NOT NULL, " +
-                NewsEntry.COLUMN_WEATHER_ID + " INTEGER NOT NULL," +
+                NewsEntry.COLUMN_THEME + " TEXT NOT NULL, " +
+                NewsEntry.COLUMN_CONTENT + " TEXT NOT NULL, " +
+                NewsEntry.COLUMN_TITLE + " TEXT NOT NULL, " +
+                NewsEntry.COLUMN_PUBLISHER + " TEXT NOT NULL, " +
+                NewsEntry.COLUMN_URL + " TEXT NOT NULL, " +
 
-                NewsEntry.COLUMN_MIN_TEMP + " REAL NOT NULL, " +
-                NewsEntry.COLUMN_MAX_TEMP + " REAL NOT NULL, " +
+                NewsEntry.COLUMN_LANGUAGE + " TEXT," +
 
-                NewsEntry.COLUMN_HUMIDITY + " REAL NOT NULL, " +
-                NewsEntry.COLUMN_PRESSURE + " REAL NOT NULL, " +
-                NewsEntry.COLUMN_WIND_SPEED + " REAL NOT NULL, " +
-                NewsEntry.COLUMN_DEGREES + " REAL NOT NULL, " +
+                NewsEntry.COLUMN_URL_IMAGE + " TEXT, " +
+                NewsEntry.COLUMN_URL_IMAGE_THUMBNAIL + " TEXT, " +
 
-                // To assure the application have just one weather entry per day
-                // per location, it's created a UNIQUE constraint with REPLACE strategy
                 " UNIQUE (" + NewsEntry.COLUMN_DATETEXT + ", " +
-                NewsEntry.COLUMN_LOC_KEY + ") ON CONFLICT REPLACE);";
+                NewsEntry.COLUMN_THEME + ") ON CONFLICT REPLACE);";
 
         sqLiteDatabase.execSQL(SQL_CREATE_NEWS_TABLE);
     }

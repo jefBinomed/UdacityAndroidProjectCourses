@@ -1,7 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <string name="app_name">UdacityApp</string>
-    <string name="title_new_detail">New Detail</string>
+    <string name="app_name">News</string>
+    <string name="title_new_detail">News Detail</string>
+
+
+    <!-- Label for the Theme preference [CHAR LIMIT=30] -->
+    <string name="pref_theme_label">Research Theme</string>
+
+    <!-- Key name for storing Theme in SharedPreferences [CHAR LIMIT=NONE] -->
+    <string name="pref_theme_key" translatable="false">theme</string>
+
+    <!-- Default postal code for Theme preference [CHAR LIMIT=NONE] -->
+    <string name="pref_theme_default" translatable="false">Android</string>
+    <string name="action_settings">Settings</string>
+    <string name="action_share">Share</string>
 
 </resources>
