@@ -2,7 +2,7 @@ package com.binomed.jef.udacityapp;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.v4.app.FragmentActivity;
+import android.support.v7.app.ActionBarActivity;
 
 
 /**
@@ -21,7 +21,7 @@ import android.support.v4.app.FragmentActivity;
  * {@link NewListFragment.Callbacks} interface
  * to listen for item selections.
  */
-public class NewListActivity extends FragmentActivity
+public class NewListActivity extends ActionBarActivity
         implements NewListFragment.Callbacks {
 
     /**
