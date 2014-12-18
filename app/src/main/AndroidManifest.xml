@@ -42,6 +42,9 @@
             android:exported="false"
             android:syncable="true" />
 
+        <service android:name=".service.NewsService"/>
+        <receiver android:name=".service.NewsService$AlarmReceiver" android:enabled="true"/>
+
     </application>
 
 </manifest>

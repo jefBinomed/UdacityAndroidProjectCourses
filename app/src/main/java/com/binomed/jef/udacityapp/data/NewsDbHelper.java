@@ -60,7 +60,7 @@ public class NewsDbHelper extends SQLiteOpenHelper {
                 NewsEntry.COLUMN_URL_IMAGE + " TEXT, " +
                 NewsEntry.COLUMN_URL_IMAGE_THUMBNAIL + " TEXT, " +
 
-                " UNIQUE (" + NewsEntry.COLUMN_DATETEXT + ", " +
+                " UNIQUE (" + NewsEntry.COLUMN_URL + ", " +
                 NewsEntry.COLUMN_THEME + ") ON CONFLICT REPLACE);";
 
         sqLiteDatabase.execSQL(SQL_CREATE_NEWS_TABLE);

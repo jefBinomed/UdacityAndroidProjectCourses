@@ -1,6 +1,10 @@
 package com.binomed.jef.udacityapp;
 
 import android.app.Activity;
+import android.app.AlarmManager;
+import android.app.PendingIntent;
+import android.content.Context;
+import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
@@ -8,12 +12,12 @@ import android.support.v4.app.ListFragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
+import android.util.Log;
 import android.view.View;
 import android.widget.ListView;
 
-
 import com.binomed.jef.udacityapp.data.NewsContract;
-import com.binomed.jef.udacityapp.dummy.DummyContent;
+import com.binomed.jef.udacityapp.service.NewsService;
 
 import java.util.Date;
 
@@ -40,6 +44,7 @@ public class NewListFragment extends ListFragment implements LoaderManager.Loade
             // So the convenience is worth it.
             NewsContract.NewsEntry.TABLE_NAME + "." + NewsContract.NewsEntry._ID,
             NewsContract.NewsEntry.COLUMN_DATETEXT,
+            NewsContract.NewsEntry.COLUMN_URL,
             NewsContract.NewsEntry.COLUMN_URL_IMAGE_THUMBNAIL,
             NewsContract.NewsEntry.COLUMN_PUBLISHER,
             NewsContract.NewsEntry.COLUMN_TITLE
@@ -55,6 +60,8 @@ public class NewListFragment extends ListFragment implements LoaderManager.Loade
     private static final int NEWS_LOADER = 0;
 
     private NewsAdapter mNewsAdapter;
+
+    private String mTheme;
 
     /**
      * The fragment's current callback object, which is notified of list item
@@ -103,6 +110,7 @@ public class NewListFragment extends ListFragment implements LoaderManager.Loade
         // TODO: replace with a real list adapter.
         mNewsAdapter = new NewsAdapter(getActivity(), null, 0);
         setListAdapter(mNewsAdapter);
+
     }
 
 
@@ -152,10 +160,17 @@ public class NewListFragment extends ListFragment implements LoaderManager.Loade
     @Override
     public void onResume() {
         super.onResume();
+
+        Cursor cursor = getActivity().getContentResolver().query(NewsContract.NewsEntry.CONTENT_URI, null, null,null, null);
+        Log.d(getTag(), "Nb news : "+cursor.getCount());
+
         // TODO faire quelque chose
-        /*if (mLocation != null && !mLocation.equals(Utility.getPreferredLocation(getActivity()))) {
+        if (mTheme != null && !mTheme.equals(Utility.getPreferredTheme(getActivity()))) {
             getLoaderManager().restartLoader(NEWS_LOADER, null, this);
-        }*/
+        }else{
+            //
+
+        }
     }
 
     @Override
@@ -164,7 +179,12 @@ public class NewListFragment extends ListFragment implements LoaderManager.Loade
 
         // Notify the active callbacks interface (the activity, if the
         // fragment is attached to one) that an item has been selected.
-        mCallbacks.onItemSelected(DummyContent.ITEMS.get(position).id);
+        Cursor cursor = mNewsAdapter.getCursor();
+        if (cursor != null && cursor.moveToPosition(position)) {
+            mCallbacks.onItemSelected(cursor.getString(cursor.getColumnIndex(NewsContract.NewsEntry.COLUMN_URL)));
+        }
+        mActivatedPosition = position;
+
     }
 
     @Override
@@ -212,9 +232,8 @@ public class NewListFragment extends ListFragment implements LoaderManager.Loade
         // Sort order:  Ascending, by date.
         String sortOrder = NewsContract.NewsEntry.COLUMN_DATETEXT + " ASC";
 
-        String mTheme = Utility.getPreferredTheme(getActivity());
-        Uri weatherForLocationUri = NewsContract.NewsEntry.buildNewsWithStartDate(
-                mTheme, startDate);
+        mTheme = Utility.getPreferredTheme(getActivity());
+        Uri weatherForLocationUri = NewsContract.NewsEntry.buildNewsWithTheme(mTheme);
 
         // Now create and return a CursorLoader that will take care of
         // creating a Cursor for the data being displayed.
@@ -230,16 +249,33 @@ public class NewListFragment extends ListFragment implements LoaderManager.Loade
 
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
-        mNewsAdapter.swapCursor(data);
-        if (mActivatedPosition != ListView.INVALID_POSITION) {
-            // If we don't need to restart the loader, and there's a desired position to restore
-            // to, do so now.
-            getListView().smoothScrollToPosition(mActivatedPosition);
+        if (data.getCount() ==0){
+            updateWeather();
+        }else {
+            mNewsAdapter.swapCursor(data);
+            if (mActivatedPosition != ListView.INVALID_POSITION) {
+                // If we don't need to restart the loader, and there's a desired position to restore
+                // to, do so now.
+                getListView().smoothScrollToPosition(mActivatedPosition);
+            }
         }
     }
 
     @Override
     public void onLoaderReset(Loader<Cursor> loader) {
         mNewsAdapter.swapCursor(null);
+    }
+
+    private void updateWeather() {
+        Intent alarmIntent = new Intent(getActivity(), NewsService.AlarmReceiver.class);
+        alarmIntent.putExtra(NewsService.THEME_QUERY_EXTRA, Utility.getPreferredTheme(getActivity()));
+
+        //Wrap in a pending intent which only fires once.
+        PendingIntent pi = PendingIntent.getBroadcast(getActivity(), 0,alarmIntent,PendingIntent.FLAG_ONE_SHOT);//getBroadcast(context, 0, i, 0);
+
+        AlarmManager am=(AlarmManager)getActivity().getSystemService(Context.ALARM_SERVICE);
+
+        //Set the AlarmManager to wake up the system.
+        am.set(AlarmManager.RTC_WAKEUP, System.currentTimeMillis() + 5000, pi);
     }
 }

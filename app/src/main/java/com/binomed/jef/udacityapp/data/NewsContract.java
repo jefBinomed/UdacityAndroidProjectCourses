@@ -22,6 +22,7 @@ import android.provider.BaseColumns;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Locale;
 
 /**
  * Defines table and column names for the weather database.
@@ -86,7 +87,7 @@ public class NewsContract {
      * @return the Date object
      */
     public static Date getDateFromJson(String dateText) {
-        SimpleDateFormat dbDateFormat = new SimpleDateFormat(DATE_FORMAT_JSON);
+        SimpleDateFormat dbDateFormat = new SimpleDateFormat(DATE_FORMAT_JSON, Locale.US);
         try {
             return dbDateFormat.parse(dateText);
         } catch ( ParseException e ) {
@@ -136,23 +137,28 @@ public class NewsContract {
             return ContentUris.withAppendedId(CONTENT_URI, id);
         }
 
+        public static Uri buildNewsWithTheme(
+                String theme) {
+            return CONTENT_URI.buildUpon().appendPath(theme).build();
+        }
 
-        public static Uri buildNewsWithStartDate(
-                String theme, String startDate) {
+
+        public static Uri buildNewsWithUrl(
+                String theme, String url) {
             return CONTENT_URI.buildUpon().appendPath(theme)
-                    .appendQueryParameter(COLUMN_DATETEXT, startDate).build();
+                    .appendQueryParameter(COLUMN_URL, url).build();
         }
 
         public static String getThemeSettingFromUri(Uri uri) {
             return uri.getPathSegments().get(1);
         }
 
-        public static String getDateFromUri(Uri uri) {
+        public static String getUrlFromUri(Uri uri) {
             return uri.getPathSegments().get(2);
         }
 
-        public static String getStartDateFromUri(Uri uri) {
+        /*public static String getStartDateFromUri(Uri uri) {
             return uri.getQueryParameter(COLUMN_DATETEXT);
-        }
+        }*/
     }
 }

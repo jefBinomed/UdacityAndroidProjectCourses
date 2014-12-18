@@ -17,6 +17,7 @@
 package com.binomed.jef.udacityapp.service;
 
 import android.app.IntentService;
+import android.content.BroadcastReceiver;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
@@ -36,7 +37,6 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.util.Date;
 import java.util.Vector;
 
 
@@ -146,7 +146,7 @@ public class NewsService extends IntentService {
         final String GNA_TITLE = "titleNoFormatting";
         final String GNA_PUBLISHER = "publisher";
         final String GNA_LANGUAGE = "language";
-        final String GNA_URL = "unsecapeUrl";
+        final String GNA_URL = "unescapedUrl";
 
         // All Images are children of the "temp" object.
         final String GNA_IMAGE = "image";
@@ -180,25 +180,25 @@ public class NewsService extends IntentService {
                     // Get the JSON object representing a news
                     JSONObject newsItem = newsArray.getJSONObject(i);
 
-                    dateTime = newsItem.getString(GNA_DATETIME);
-                    content = newsItem.getString(GNA_CONTENT);
-                    title = newsItem.getString(GNA_TITLE);
-                    publisher = newsItem.getString(GNA_PUBLISHER);
-                    langage = newsItem.getString(GNA_LANGUAGE);
-                    url = newsItem.getString(GNA_URL);
+                    dateTime = newsItem.has(GNA_DATETIME) ? newsItem.getString(GNA_DATETIME) : null;
+                    content = newsItem.has(GNA_CONTENT) ?newsItem.getString(GNA_CONTENT) : null;
+                    title = newsItem.has(GNA_TITLE) ?newsItem.getString(GNA_TITLE) : null;
+                    publisher = newsItem.has(GNA_PUBLISHER) ?newsItem.getString(GNA_PUBLISHER) : null;
+                    langage = newsItem.has(GNA_LANGUAGE) ?newsItem.getString(GNA_LANGUAGE) : null;
+                    url = newsItem.has(GNA_URL) ? newsItem.getString(GNA_URL) : null;
 
 
                     // List of image if present !
-                    JSONObject imageObject =
-                            newsItem.getJSONObject(GNA_IMAGE);
+                    JSONObject imageObject = newsItem.has(GNA_IMAGE) ?
+                            newsItem.getJSONObject(GNA_IMAGE) : null;
 
                     String urlImage = null;
                     String urlImageThumbnail = null;
 
                     if (imageObject != null){
 
-                        urlImage = imageObject.getString(GNA_IMAGE_URL);
-                        urlImageThumbnail = imageObject.getString(GNA_THUMBNAIL_IMAGE_URL);
+                        urlImage = imageObject.has(GNA_IMAGE_URL) ? imageObject.getString(GNA_IMAGE_URL) : null;
+                        urlImageThumbnail = imageObject.has(GNA_THUMBNAIL_IMAGE_URL) ? imageObject.getString(GNA_THUMBNAIL_IMAGE_URL) : null;
                     }
 
                     ContentValues newsValues = new ContentValues();
@@ -230,6 +230,18 @@ public class NewsService extends IntentService {
             e.printStackTrace();
         }
 
+    }
+
+
+    public static class AlarmReceiver extends BroadcastReceiver {
+
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            Intent sendIntent = new Intent(context, NewsService.class);
+            sendIntent.putExtra(NewsService.THEME_QUERY_EXTRA, intent.getStringExtra(NewsService.THEME_QUERY_EXTRA));
+            context.startService(sendIntent);
+
+        }
     }
 
 

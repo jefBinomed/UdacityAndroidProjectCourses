@@ -30,7 +30,7 @@ public class NewsProvider extends ContentProvider {
 
     private static final int NEWS = 100;
     private static final int NEWS_WITH_THEME = 101;
-    private static final int NEWS_WITH_THEME_AND_DATE = 102;
+    private static final int NEWS_WITH_THEME_AND_URL = 102;
 
     private static UriMatcher buildUriMatcher() {
         // I know what you're thinking.  Why create a UriMatcher when you can use regular
@@ -45,7 +45,7 @@ public class NewsProvider extends ContentProvider {
         // For each type of URI you want to add, create a corresponding code.
         matcher.addURI(authority, NewsContract.PATH_NEWS, NEWS);
         matcher.addURI(authority, NewsContract.PATH_NEWS + "/*", NEWS_WITH_THEME);
-        matcher.addURI(authority, NewsContract.PATH_NEWS + "/*/*", NEWS_WITH_THEME_AND_DATE);
+        matcher.addURI(authority, NewsContract.PATH_NEWS + "/*/*", NEWS_WITH_THEME_AND_URL);
 
         return matcher;
     }
@@ -59,29 +59,22 @@ public class NewsProvider extends ContentProvider {
     private static final String sLocationSettingSelection =
             NewsContract.NewsEntry.TABLE_NAME+
                     "." + NewsContract.NewsEntry.COLUMN_THEME + " = ? ";
-    private static final String sLocationSettingWithStartDateSelection =
+    private static final String sLocationSettingWithUrlSelection =
             NewsContract.NewsEntry.TABLE_NAME+
                     "." + NewsContract.NewsEntry.COLUMN_THEME + " = ? AND " +
-                    NewsContract.NewsEntry.COLUMN_DATETEXT + " >= ? ";
-    private static final String sLocationSettingAndDaySelection =
+                    NewsContract.NewsEntry.COLUMN_URL + " = ? ";
+    /*private static final String sLocationSettingAndDaySelection =
             NewsContract.NewsEntry.TABLE_NAME +
                     "." + NewsContract.NewsEntry.COLUMN_THEME + " = ? AND " +
-                    NewsContract.NewsEntry.COLUMN_DATETEXT + " = ? ";
+                    NewsContract.NewsEntry.COLUMN_DATETEXT + " = ? ";*/
 
     private Cursor getNewsByThemeSetting(Uri uri, String[] projection, String sortOrder) {
         String locationSetting = NewsContract.NewsEntry.getThemeSettingFromUri(uri);
-        String startDate = NewsContract.NewsEntry.getStartDateFromUri(uri);
 
-        String[] selectionArgs;
-        String selection;
+        String[] selectionArgs = new String[]{locationSetting};
+        String selection = sLocationSettingSelection;
 
-        if (startDate == null) {
-            selection = sLocationSettingSelection;
-            selectionArgs = new String[]{locationSetting};
-        } else {
-            selectionArgs = new String[]{locationSetting, startDate};
-            selection = sLocationSettingWithStartDateSelection;
-        }
+
 
         return mOpenHelper.getReadableDatabase().query(
                 NewsContract.NewsEntry.TABLE_NAME,
@@ -94,16 +87,16 @@ public class NewsProvider extends ContentProvider {
         );
     }
 
-    private Cursor getWeatherByLocationSettingAndDate(
+    private Cursor getWeatherByLocationSettingAndUrl(
             Uri uri, String[] projection, String sortOrder) {
         String locationSetting = NewsContract.NewsEntry.getThemeSettingFromUri(uri);
-        String date = NewsContract.NewsEntry.getDateFromUri(uri);
+        String url = NewsContract.NewsEntry.getUrlFromUri(uri);
 
         return mOpenHelper.getReadableDatabase().query(
                 NewsContract.NewsEntry.TABLE_NAME,
                 projection,
-                sLocationSettingAndDaySelection,
-                new String[]{locationSetting, date},
+                sLocationSettingWithUrlSelection,
+                new String[]{locationSetting, url},
                 null,
                 null,
                 sortOrder
@@ -118,18 +111,18 @@ public class NewsProvider extends ContentProvider {
         // and query the database accordingly.
         Cursor retCursor;
         switch (sUriMatcher.match(uri)) {
-            // "weather/*/*"
-            case NEWS_WITH_THEME_AND_DATE:
+            // "news/*/*"
+            case NEWS_WITH_THEME_AND_URL:
             {
-                retCursor = getWeatherByLocationSettingAndDate(uri, projection, sortOrder);
+                retCursor = getWeatherByLocationSettingAndUrl(uri, projection, sortOrder);
                 break;
             }
-            // "weather/*"
+            // "news/*"
             case NEWS_WITH_THEME: {
                 retCursor = getNewsByThemeSetting(uri, projection, sortOrder);
                 break;
             }
-            // "weather"
+            // "news"
             case NEWS: {
                 retCursor = mOpenHelper.getReadableDatabase().query(
                         NewsContract.NewsEntry.TABLE_NAME,
@@ -157,7 +150,7 @@ public class NewsProvider extends ContentProvider {
         final int match = sUriMatcher.match(uri);
 
         switch (match) {
-            case NEWS_WITH_THEME_AND_DATE:
+            case NEWS_WITH_THEME_AND_URL:
                 return NewsContract.NewsEntry.CONTENT_ITEM_TYPE;
             case NEWS_WITH_THEME:
                 return NewsContract.NewsEntry.CONTENT_TYPE;

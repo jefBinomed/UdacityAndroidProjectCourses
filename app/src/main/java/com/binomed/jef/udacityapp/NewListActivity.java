@@ -85,7 +85,7 @@ public class NewListActivity extends ActionBarActivity
             // adding or replacing the detail fragment using a
             // fragment transaction.
             Bundle arguments = new Bundle();
-            arguments.putString(NewDetailFragment.ARG_ITEM_ID, id);
+            arguments.putString(NewDetailFragment.NEWS_KEY, id);
             NewDetailFragment fragment = new NewDetailFragment();
             fragment.setArguments(arguments);
             getSupportFragmentManager().beginTransaction()
@@ -96,8 +96,11 @@ public class NewListActivity extends ActionBarActivity
             // In single-pane mode, simply start the detail activity
             // for the selected item ID.
             Intent detailIntent = new Intent(this, NewDetailActivity.class);
-            detailIntent.putExtra(NewDetailFragment.ARG_ITEM_ID, id);
+            detailIntent.putExtra(NewDetailFragment.NEWS_KEY, id);
             startActivity(detailIntent);
         }
     }
+
+
+
 }
