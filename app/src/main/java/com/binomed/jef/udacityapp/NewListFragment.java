@@ -1,14 +1,21 @@
 package com.binomed.jef.udacityapp;
 
 import android.app.Activity;
+import android.database.Cursor;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.ListFragment;
+import android.support.v4.app.LoaderManager;
+import android.support.v4.content.CursorLoader;
+import android.support.v4.content.Loader;
 import android.view.View;
-import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
 
+import com.binomed.jef.udacityapp.data.NewsContract;
 import com.binomed.jef.udacityapp.dummy.DummyContent;
+
+import java.util.Date;
 
 /**
  * A list fragment representing a list of News. This fragment
@@ -19,13 +26,35 @@ import com.binomed.jef.udacityapp.dummy.DummyContent;
  * Activities containing this fragment MUST implement the {@link Callbacks}
  * interface.
  */
-public class NewListFragment extends ListFragment {
+public class NewListFragment extends ListFragment implements LoaderManager.LoaderCallbacks<Cursor> {
+
+
+    // For the forecast view we're showing only a small subset of the stored data.
+    // Specify the columns we need.
+    private static final String[] NEWS_COLUMNS = {
+            // In this case the id needs to be fully qualified with a table name, since
+            // the content provider joins the location & weather tables in the background
+            // (both have an _id column)
+            // On the one hand, that's annoying.  On the other, you can search the weather table
+            // using the location set by the user, which is only in the Location table.
+            // So the convenience is worth it.
+            NewsContract.NewsEntry.TABLE_NAME + "." + NewsContract.NewsEntry._ID,
+            NewsContract.NewsEntry.COLUMN_DATETEXT,
+            NewsContract.NewsEntry.COLUMN_URL_IMAGE_THUMBNAIL,
+            NewsContract.NewsEntry.COLUMN_PUBLISHER,
+            NewsContract.NewsEntry.COLUMN_TITLE
+    };
 
     /**
      * The serialization (saved instance state) Bundle key representing the
      * activated item position. Only used on tablets.
      */
     private static final String STATE_ACTIVATED_POSITION = "activated_position";
+
+
+    private static final int NEWS_LOADER = 0;
+
+    private NewsAdapter mNewsAdapter;
 
     /**
      * The fragment's current callback object, which is notified of list item
@@ -72,16 +101,19 @@ public class NewListFragment extends ListFragment {
         super.onCreate(savedInstanceState);
 
         // TODO: replace with a real list adapter.
-        setListAdapter(new ArrayAdapter<DummyContent.DummyItem>(
-                getActivity(),
-                android.R.layout.simple_list_item_activated_1,
-                android.R.id.text1,
-                DummyContent.ITEMS));
+        mNewsAdapter = new NewsAdapter(getActivity(), null, 0);
+        setListAdapter(mNewsAdapter);
     }
+
+
 
     @Override
     public void onViewCreated(View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+
+        // The ArrayAdapter will take data from a source and
+        // use it to populate the ListView it's attached to.
+
 
         // Restore the previously serialized activated item position.
         if (savedInstanceState != null
@@ -103,11 +135,27 @@ public class NewListFragment extends ListFragment {
     }
 
     @Override
+    public void onActivityCreated(Bundle savedInstanceState) {
+        getLoaderManager().initLoader(NEWS_LOADER, null, this);
+        super.onActivityCreated(savedInstanceState);
+    }
+
+    @Override
     public void onDetach() {
         super.onDetach();
 
         // Reset the active callbacks interface to the dummy implementation.
         mCallbacks = sDummyCallbacks;
+    }
+
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        // TODO faire quelque chose
+        /*if (mLocation != null && !mLocation.equals(Utility.getPreferredLocation(getActivity()))) {
+            getLoaderManager().restartLoader(NEWS_LOADER, null, this);
+        }*/
     }
 
     @Override
@@ -148,5 +196,50 @@ public class NewListFragment extends ListFragment {
         }
 
         mActivatedPosition = position;
+    }
+
+
+    @Override
+    public Loader<Cursor> onCreateLoader(int id, Bundle args) {
+        // This is called when a new Loader needs to be created.  This
+        // fragment only uses one loader, so we don't care about checking the id.
+
+        // To only show current and future dates, get the String representation for today,
+        // and filter the query to return weather only for dates after or including today.
+        // Only return data after today.
+        String startDate = NewsContract.getDbDateString(new Date());
+
+        // Sort order:  Ascending, by date.
+        String sortOrder = NewsContract.NewsEntry.COLUMN_DATETEXT + " ASC";
+
+        String mTheme = Utility.getPreferredTheme(getActivity());
+        Uri weatherForLocationUri = NewsContract.NewsEntry.buildNewsWithStartDate(
+                mTheme, startDate);
+
+        // Now create and return a CursorLoader that will take care of
+        // creating a Cursor for the data being displayed.
+        return new CursorLoader(
+                getActivity(),
+                weatherForLocationUri,
+                NEWS_COLUMNS,
+                null,
+                null,
+                sortOrder
+        );
+    }
+
+    @Override
+    public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
+        mNewsAdapter.swapCursor(data);
+        if (mActivatedPosition != ListView.INVALID_POSITION) {
+            // If we don't need to restart the loader, and there's a desired position to restore
+            // to, do so now.
+            getListView().smoothScrollToPosition(mActivatedPosition);
+        }
+    }
+
+    @Override
+    public void onLoaderReset(Loader<Cursor> loader) {
+        mNewsAdapter.swapCursor(null);
     }
 }
