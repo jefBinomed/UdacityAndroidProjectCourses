@@ -4,6 +4,7 @@
 
     <!-- This permission is necessary in order for Sunshine to perform network access. -->
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
 
     <application
         android:allowBackup="true"
@@ -11,8 +12,8 @@
         android:label="@string/app_name"
         android:theme="@style/AppTheme" >
         <activity
-            android:name=".NewListActivity"
-            android:theme="@style/NewsTheme">
+            android:name="com.binomed.jef.udacityapp.NewListActivity"
+            android:theme="@style/NewsTheme" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -20,31 +21,41 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".NewDetailActivity"
+            android:name="com.binomed.jef.udacityapp.NewDetailActivity"
             android:label="@string/title_new_detail"
-            android:parentActivityName=".NewListActivity" >
+            android:parentActivityName="com.binomed.jef.udacityapp.NewListActivity" >
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".NewListActivity" />
         </activity>
         <activity
-            android:name=".SettingsActivity"
+            android:name="com.binomed.jef.udacityapp.SettingsActivity"
             android:label="@string/title_activity_settings"
-            android:parentActivityName=".NewListActivity" >
+            android:parentActivityName="com.binomed.jef.udacityapp.NewListActivity" >
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".NewListActivity" />
         </activity>
 
         <provider
+            android:name="com.binomed.jef.udacityapp.data.NewsProvider"
             android:authorities="com.binomed.jef.udacityapp"
-            android:name=".data.NewsProvider"
             android:exported="false"
             android:syncable="true" />
 
-        <service android:name=".service.NewsService"/>
-        <receiver android:name=".service.NewsService$AlarmReceiver" android:enabled="true"/>
+        <service android:name="com.binomed.jef.udacityapp.service.NewsService" />
 
+        <receiver
+            android:name="com.binomed.jef.udacityapp.service.NewsService$AlarmReceiver"
+            android:enabled="true" />
+        <receiver
+            android:name="com.binomed.jef.udacityapp.service.MyReceiver"
+            android:enabled="true"
+            android:exported="true" >
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+            </intent-filter>
+        </receiver>
     </application>
 
 </manifest>

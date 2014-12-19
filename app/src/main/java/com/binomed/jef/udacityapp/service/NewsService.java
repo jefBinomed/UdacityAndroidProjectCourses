@@ -37,6 +37,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.Calendar;
 import java.util.Vector;
 
 
@@ -51,6 +52,13 @@ public class NewsService extends IntentService {
 
     @Override
     protected void onHandleIntent(Intent intent) {
+
+        Calendar yesterday = Calendar.getInstance();
+        yesterday.add(Calendar.DAY_OF_MONTH,-1);
+        getContentResolver().delete(NewsContract.NewsEntry.CONTENT_URI,
+                NewsContract.NewsEntry.COLUMN_DATETEXT + " <= ?",
+                new String[] {NewsContract.getDbDateString(yesterday.getTime())});
+
         String themeQuery = intent.getStringExtra(THEME_QUERY_EXTRA);
 
         // These two need to be declared outside the try/catch
@@ -210,6 +218,7 @@ public class NewsService extends IntentService {
                     newsValues.put(NewsContract.NewsEntry.COLUMN_PUBLISHER, publisher);
                     newsValues.put(NewsContract.NewsEntry.COLUMN_LANGUAGE, langage);
                     newsValues.put(NewsContract.NewsEntry.COLUMN_URL, url);
+                    newsValues.put(NewsContract.NewsEntry.COLUMN_URL_ID, url.hashCode());
                     newsValues.put(NewsContract.NewsEntry.COLUMN_URL_IMAGE, urlImage);
                     newsValues.put(NewsContract.NewsEntry.COLUMN_URL_IMAGE_THUMBNAIL, urlImageThumbnail);
 

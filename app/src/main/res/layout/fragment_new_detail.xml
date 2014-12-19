@@ -2,104 +2,65 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <LinearLayout
-        android:gravity="center_vertical"
-        android:layout_gravity="left"
-        android:layout_height="wrap_content"
+    <RelativeLayout
         android:layout_width="match_parent"
-        android:orientation="vertical"
-        android:padding="16dp">
-
-        <!-- Header: Day, Date -->
+        android:layout_height="wrap_content"
+        android:padding="20dp">
+        <ImageView
+            android:id="@+id/detail_icon"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:layout_marginLeft="16dp"
+            android:layout_alignParentTop="true"
+            android:layout_alignParentLeft="true"/>
         <TextView
             android:fontFamily="sans-serif-condensed"
             android:id="@+id/detail_title"
             android:layout_height="wrap_content"
             android:layout_width="wrap_content"
+            android:layout_marginLeft="10dp"
+            android:layout_below="@+id/detail_icon"
             android:textColor="@color/black"
-            android:textSize="24sp" />
+            android:textAppearance="?android:textAppearanceLarge"
+            android:textSize="26sp" />
 
         <TextView
             android:fontFamily="sans-serif-condensed"
             android:id="@+id/detail_publisher"
             android:layout_height="wrap_content"
             android:layout_width="wrap_content"
+            android:layout_below="@+id/detail_title"
+            android:layout_marginLeft="10dp"
             android:textColor="@color/grey_700"
+            android:textSize="20sp" />
+        <TextView
+            android:fontFamily="sans-serif-light"
+            android:id="@+id/detail_date"
+            android:layout_height="wrap_content"
+            android:layout_width="wrap_content"
+            android:layout_below="@+id/detail_publisher"
+            android:layout_alignParentLeft="true"
+            android:textColor="@color/grey"
             android:textSize="16sp" />
 
-        <!-- Main content: high, low, art, weather state -->
-        <LinearLayout
-            android:gravity="center_horizontal"
-            android:layout_height="match_parent"
-            android:layout_marginTop="16dp"
+        <TextView
+            android:id="@+id/detail_content"
+            android:layout_height="wrap_content"
             android:layout_width="match_parent"
-            android:orientation="horizontal">
+            android:layout_below="@+id/detail_date"
+            android:textSize="20sp"
+             />
 
-            <LinearLayout
-                android:gravity="left"
-                android:layout_height="wrap_content"
-                android:layout_width="wrap_content"
-                android:orientation="vertical">
-
-                <TextView
-                    android:fontFamily="sans-serif-light"
-                    android:id="@+id/detail_date"
-                    android:layout_height="wrap_content"
-                    android:layout_width="wrap_content"
-                    android:textSize="96sp" />
-
-                <TextView
-                    android:id="@+id/detail_low_textview"
-                    android:layout_gravity="center_horizontal"
-                    android:layout_height="wrap_content"
-                    android:layout_width="wrap_content"
-                    android:textColor="@color/grey_700"
-                    android:textSize="48sp" />
-            </LinearLayout>
-
-            <LinearLayout
-                android:gravity="center_horizontal"
-                android:layout_gravity="center"
-                android:layout_height="wrap_content"
-                android:layout_width="wrap_content"
-                android:orientation="vertical">
-
-                <ImageView
-                    android:id="@+id/detail_icon"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content" />
-
-                <TextView
-                    android:id="@+id/detail_forecast_textview"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:textAppearance="?android:textAppearanceLarge"
-                    android:textColor="@color/grey_700" />
-            </LinearLayout>
-        </LinearLayout>
-
-        <!-- Humidity, wind, pressure -->
-        <LinearLayout
-            android:layout_height="match_parent"
-            android:layout_marginRight="0dp"
-            android:layout_marginTop="16dp"
+        <TextView
+            android:id="@+id/detail_link"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
             android:layout_width="match_parent"
-            android:orientation="vertical">
+            android:layout_below="@+id/detail_content"
+            android:textSize="16sp" />
 
-            <TextView
-                android:id="@+id/detail_content"
-                android:layout_height="wrap_content"
-                android:layout_width="match_parent"
-                android:textAppearance="?android:textAppearanceLarge" />
-
-            <TextView
-                android:id="@+id/detail_link"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:layout_width="match_parent"
-                android:textAppearance="?android:textAppearanceLarge" />
+        </RelativeLayout>
 
 
-        </LinearLayout>
-    </LinearLayout>
 </ScrollView>

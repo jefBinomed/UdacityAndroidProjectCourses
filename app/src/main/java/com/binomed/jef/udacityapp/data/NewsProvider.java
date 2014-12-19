@@ -62,7 +62,7 @@ public class NewsProvider extends ContentProvider {
     private static final String sLocationSettingWithUrlSelection =
             NewsContract.NewsEntry.TABLE_NAME+
                     "." + NewsContract.NewsEntry.COLUMN_THEME + " = ? AND " +
-                    NewsContract.NewsEntry.COLUMN_URL + " = ? ";
+                    NewsContract.NewsEntry.COLUMN_URL_ID + " = ? ";
     /*private static final String sLocationSettingAndDaySelection =
             NewsContract.NewsEntry.TABLE_NAME +
                     "." + NewsContract.NewsEntry.COLUMN_THEME + " = ? AND " +
@@ -90,13 +90,13 @@ public class NewsProvider extends ContentProvider {
     private Cursor getWeatherByLocationSettingAndUrl(
             Uri uri, String[] projection, String sortOrder) {
         String locationSetting = NewsContract.NewsEntry.getThemeSettingFromUri(uri);
-        String url = NewsContract.NewsEntry.getUrlFromUri(uri);
+        String urlId = NewsContract.NewsEntry.getUrlFromUri(uri);
 
         return mOpenHelper.getReadableDatabase().query(
                 NewsContract.NewsEntry.TABLE_NAME,
                 projection,
                 sLocationSettingWithUrlSelection,
-                new String[]{locationSetting, url},
+                new String[]{locationSetting, urlId},
                 null,
                 null,
                 sortOrder

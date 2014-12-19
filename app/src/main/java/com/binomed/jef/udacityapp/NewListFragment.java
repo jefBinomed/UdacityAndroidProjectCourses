@@ -44,7 +44,7 @@ public class NewListFragment extends ListFragment implements LoaderManager.Loade
             // So the convenience is worth it.
             NewsContract.NewsEntry.TABLE_NAME + "." + NewsContract.NewsEntry._ID,
             NewsContract.NewsEntry.COLUMN_DATETEXT,
-            NewsContract.NewsEntry.COLUMN_URL,
+            NewsContract.NewsEntry.COLUMN_URL_ID,
             NewsContract.NewsEntry.COLUMN_URL_IMAGE_THUMBNAIL,
             NewsContract.NewsEntry.COLUMN_PUBLISHER,
             NewsContract.NewsEntry.COLUMN_TITLE
@@ -181,7 +181,7 @@ public class NewListFragment extends ListFragment implements LoaderManager.Loade
         // fragment is attached to one) that an item has been selected.
         Cursor cursor = mNewsAdapter.getCursor();
         if (cursor != null && cursor.moveToPosition(position)) {
-            mCallbacks.onItemSelected(cursor.getString(cursor.getColumnIndex(NewsContract.NewsEntry.COLUMN_URL)));
+            mCallbacks.onItemSelected(cursor.getString(cursor.getColumnIndex(NewsContract.NewsEntry.COLUMN_URL_ID)));
         }
         mActivatedPosition = position;
 
@@ -250,7 +250,7 @@ public class NewListFragment extends ListFragment implements LoaderManager.Loade
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
         if (data.getCount() ==0){
-            updateWeather();
+            updateNews();
         }else {
             mNewsAdapter.swapCursor(data);
             if (mActivatedPosition != ListView.INVALID_POSITION) {
@@ -266,7 +266,7 @@ public class NewListFragment extends ListFragment implements LoaderManager.Loade
         mNewsAdapter.swapCursor(null);
     }
 
-    private void updateWeather() {
+    private void updateNews() {
         Intent alarmIntent = new Intent(getActivity(), NewsService.AlarmReceiver.class);
         alarmIntent.putExtra(NewsService.THEME_QUERY_EXTRA, Utility.getPreferredTheme(getActivity()));
 

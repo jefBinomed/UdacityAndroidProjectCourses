@@ -39,8 +39,8 @@ public class NewDetailActivity extends ActionBarActivity {
             // Create the detail fragment and add it to the activity
             // using a fragment transaction.
             Bundle arguments = new Bundle();
-            arguments.putString(NewDetailFragment.ARG_ITEM_ID,
-                    getIntent().getStringExtra(NewDetailFragment.ARG_ITEM_ID));
+            arguments.putString(NewDetailFragment.NEWS_KEY,
+                    getIntent().getStringExtra(NewDetailFragment.NEWS_KEY));
             NewDetailFragment fragment = new NewDetailFragment();
             fragment.setArguments(arguments);
             getSupportFragmentManager().beginTransaction()

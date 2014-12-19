@@ -9,10 +9,13 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
+import android.support.v4.view.MenuItemCompat;
 import android.support.v7.widget.ShareActionProvider;
+import android.text.Html;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
@@ -48,6 +51,8 @@ public class NewDetailFragment extends Fragment implements LoaderManager.LoaderC
             NewsContract.NewsEntry.COLUMN_CONTENT
     };
 
+    private static final int DETAIL_LOADER = 0;
+
     /**
      * The dummy content this fragment is presenting.
      */
@@ -59,8 +64,8 @@ public class NewDetailFragment extends Fragment implements LoaderManager.LoaderC
 
     private ShareActionProvider mShareActionProvider;
     private String mTheme;
-    private String mForecast;
     private String mUrlKey;
+    private String mUrl;
 
     private ImageView mIconView;
     private TextView mContentView;
@@ -77,6 +82,13 @@ public class NewDetailFragment extends Fragment implements LoaderManager.LoaderC
      * fragment (e.g. upon screen orientation changes).
      */
     public NewDetailFragment() {
+    }
+
+
+    @Override
+    public void onActivityCreated(Bundle savedInstanceState) {
+        getLoaderManager().initLoader(DETAIL_LOADER, null, this);
+        super.onActivityCreated(savedInstanceState);
     }
 
     @Override
@@ -96,6 +108,16 @@ public class NewDetailFragment extends Fragment implements LoaderManager.LoaderC
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         inflater.inflate(R.menu.newsfragement, menu);
+        // Retrieve the share menu item
+        MenuItem menuItem = menu.findItem(R.id.action_share);
+
+        // Get the provider and hold onto it to set/change the share intent.
+        mShareActionProvider = (ShareActionProvider) MenuItemCompat.getActionProvider(menuItem);
+
+        // If onLoadFinished happens before this, we can go ahead and set the share intent now.
+        if (mUrl != null) {
+            mShareActionProvider.setShareIntent(createShareForecastIntent());
+        }
     }
 
     @Override
@@ -120,8 +142,27 @@ public class NewDetailFragment extends Fragment implements LoaderManager.LoaderC
         mTitleView = (TextView) rootView.findViewById(R.id.detail_title);
         mPublisherView = (TextView) rootView.findViewById(R.id.detail_publisher);
         mLinkView = (TextView) rootView.findViewById(R.id.detail_link);
+        mLinkView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String url = (String) v.getTag();
+                Intent i = new Intent(Intent.ACTION_VIEW);
+                i.setData(Uri.parse(url));
+                startActivity(i);
+            }
+        });
 
         return rootView;
+    }
+
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        Bundle arguments = getArguments();
+        if (arguments != null && arguments.containsKey(NEWS_KEY)) {
+            getLoaderManager().restartLoader(DETAIL_LOADER, null, this);
+        }
     }
 
     @Override
@@ -131,14 +172,14 @@ public class NewDetailFragment extends Fragment implements LoaderManager.LoaderC
 
         mTheme = Utility.getPreferredTheme(getActivity());
         // TODO corriger pour la requete
-        Uri weatherForLocationUri = NewsContract.NewsEntry.buildNewsWithUrl(
+        Uri newsForUrlUri = NewsContract.NewsEntry.buildNewsWithUrl(
                 mTheme, mUrlKey);
 
         // Now create and return a CursorLoader that will take care of
         // creating a Cursor for the data being displayed.
         return new CursorLoader(
                 getActivity(),
-                weatherForLocationUri,
+                newsForUrlUri,
                 NEWS_COLUMNS,
                 null,
                 null,
@@ -178,10 +219,32 @@ public class NewDetailFragment extends Fragment implements LoaderManager.LoaderC
             // Read description from cursor and update view
             String description = data.getString(data.getColumnIndex(
                     NewsContract.NewsEntry.COLUMN_CONTENT));
-            mContentView.setText(description);
-
+            mContentView.setText(Html.fromHtml(description));
             // For accessibility, add a content description to the icon field
-            mContentView.setContentDescription(description);
+            mContentView.setContentDescription(Html.fromHtml(description));
+
+            // Read Title from cursor and update view
+            String title = data.getString(data.getColumnIndex(
+                    NewsContract.NewsEntry.COLUMN_TITLE));
+            mTitleView.setText(title);
+            // For accessibility, add a content description to the icon field
+            mTitleView.setContentDescription(title);
+
+            // Read Title from cursor and update view
+            String publisher = data.getString(data.getColumnIndex(
+                    NewsContract.NewsEntry.COLUMN_PUBLISHER));
+            mPublisherView.setText(publisher);
+            // For accessibility, add a content description to the icon field
+            mPublisherView.setContentDescription(publisher);
+
+            // Read Title from cursor and update view
+            mUrl = data.getString(data.getColumnIndex(
+                    NewsContract.NewsEntry.COLUMN_URL));
+            mLinkView.setText(R.string.more);
+            mLinkView.setTag(mUrl);
+            // For accessibility, add a content description to the icon field
+            mLinkView.setContentDescription(getActivity().getString(R.string.click_to_open));
+
 
 
             // If onCreateOptionsMenu has already happened, we need to update the share intent now.
@@ -195,7 +258,7 @@ public class NewDetailFragment extends Fragment implements LoaderManager.LoaderC
         Intent shareIntent = new Intent(Intent.ACTION_SEND);
         shareIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_WHEN_TASK_RESET);
         shareIntent.setType("text/plain");
-        shareIntent.putExtra(Intent.EXTRA_TEXT, mForecast + NEWS_SHARE_HASHTAG);
+        shareIntent.putExtra(Intent.EXTRA_TEXT, mUrl + NEWS_SHARE_HASHTAG);
         return shareIntent;
     }
 

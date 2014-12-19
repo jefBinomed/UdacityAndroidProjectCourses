@@ -125,6 +125,7 @@ public class NewsContract {
 
         // Url of article
         public static final String COLUMN_URL = "url";
+        public static final String COLUMN_URL_ID = "url_id";
 
         // Language of article
         public static final String COLUMN_LANGUAGE = "language";
@@ -146,7 +147,7 @@ public class NewsContract {
         public static Uri buildNewsWithUrl(
                 String theme, String url) {
             return CONTENT_URI.buildUpon().appendPath(theme)
-                    .appendQueryParameter(COLUMN_URL, url).build();
+                    .appendEncodedPath(url).build();
         }
 
         public static String getThemeSettingFromUri(Uri uri) {

@@ -54,6 +54,7 @@ public class NewsDbHelper extends SQLiteOpenHelper {
                 NewsEntry.COLUMN_TITLE + " TEXT NOT NULL, " +
                 NewsEntry.COLUMN_PUBLISHER + " TEXT NOT NULL, " +
                 NewsEntry.COLUMN_URL + " TEXT NOT NULL, " +
+                NewsEntry.COLUMN_URL_ID + " TEXT NOT NULL, " +
 
                 NewsEntry.COLUMN_LANGUAGE + " TEXT," +
 
