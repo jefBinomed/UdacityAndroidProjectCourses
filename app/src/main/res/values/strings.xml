@@ -18,4 +18,8 @@
     <string name="click_to_open">Click to open</string>
     <string name="more"><a href="">more...</a></string>
 
+    <!-- SyncAdapter related -->
+    <string name="sync_account_type">jef.binomed.com</string>
+    <string name="content_authority">com.binomed.jef.udacityapp</string>
+
 </resources>

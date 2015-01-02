@@ -6,6 +6,8 @@ import android.support.v7.app.ActionBarActivity;
 import android.view.Menu;
 import android.view.MenuItem;
 
+import com.binomed.jef.udacityapp.sync.NewsSyncAdapter;
+
 
 /**
  * An activity representing a list of News. This activity
@@ -51,6 +53,7 @@ public class NewListActivity extends ActionBarActivity
                     .setActivateOnItemClick(true);
         }
 
+        NewsSyncAdapter.initializeSyncAdapter(this);
         // TODO: If exposing deep links into your app, handle intents here.
     }
 

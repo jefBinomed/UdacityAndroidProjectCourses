@@ -22,6 +22,7 @@ import android.support.v4.app.NavUtils;
 
 
 import com.binomed.jef.udacityapp.data.NewsContract;
+import com.binomed.jef.udacityapp.sync.NewsSyncAdapter;
 
 import java.util.List;
 
@@ -80,7 +81,7 @@ public class SettingsActivity extends PreferenceActivity implements Preference.O
         // are we starting the preference activity?
         if ( !mBindingPreference ) {
             if (preference.getKey().equals(getString(R.string.pref_theme_key))) {
-                // TODO SunshineSyncAdapter.syncImmediately(this);
+                NewsSyncAdapter.syncImmediately(this);
             } else {
                 // notify code that weather may be impacted
                 getContentResolver().notifyChange(NewsContract.NewsEntry.CONTENT_URI, null);

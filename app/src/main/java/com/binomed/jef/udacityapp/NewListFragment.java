@@ -18,6 +18,7 @@ import android.widget.ListView;
 
 import com.binomed.jef.udacityapp.data.NewsContract;
 import com.binomed.jef.udacityapp.service.NewsService;
+import com.binomed.jef.udacityapp.sync.NewsSyncAdapter;
 
 import java.util.Date;
 
@@ -55,6 +56,7 @@ public class NewListFragment extends ListFragment implements LoaderManager.Loade
      * activated item position. Only used on tablets.
      */
     private static final String STATE_ACTIVATED_POSITION = "activated_position";
+    private static final String STATE_THEME = "last_theme";
 
 
     private static final int NEWS_LOADER = 0;
@@ -124,10 +126,18 @@ public class NewListFragment extends ListFragment implements LoaderManager.Loade
 
 
         // Restore the previously serialized activated item position.
+        String currentTheme = Utility.getPreferredTheme(getActivity());
+        if (savedInstanceState != null && savedInstanceState.containsKey(STATE_THEME)){
+            if (!currentTheme.equals(savedInstanceState.get(STATE_THEME))){
+                mNewsAdapter.swapCursor(null);
+                return;
+            }
+        }
         if (savedInstanceState != null
                 && savedInstanceState.containsKey(STATE_ACTIVATED_POSITION)) {
             setActivatedPosition(savedInstanceState.getInt(STATE_ACTIVATED_POSITION));
         }
+
     }
 
     @Override
@@ -166,12 +176,14 @@ public class NewListFragment extends ListFragment implements LoaderManager.Loade
 
         // TODO faire quelque chose
         if (mTheme != null && !mTheme.equals(Utility.getPreferredTheme(getActivity()))) {
+            mNewsAdapter.swapCursor(null);
             getLoaderManager().restartLoader(NEWS_LOADER, null, this);
         }else{
             //
 
         }
     }
+
 
     @Override
     public void onListItemClick(ListView listView, View view, int position, long id) {
@@ -193,6 +205,7 @@ public class NewListFragment extends ListFragment implements LoaderManager.Loade
         if (mActivatedPosition != ListView.INVALID_POSITION) {
             // Serialize and persist the activated item position.
             outState.putInt(STATE_ACTIVATED_POSITION, mActivatedPosition);
+            outState.putString(STATE_THEME, Utility.getPreferredTheme(getActivity()));
         }
     }
 
